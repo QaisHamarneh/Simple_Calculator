@@ -19,7 +19,7 @@ typedef struct table{
 
 extern table_t * createTable(int size);
 extern void insert(char * key,double val);
-extern node_t * lookup(char * key);
+extern double lookup(char * key);
 
 extern table_t *symTable;
 
