@@ -6,14 +6,16 @@ int yylex();
 %}
 %%
 
-"quit"                      {return stop_command;}
-[a-z]+  		            {yylval.id = yytext; return identifier;}
+"quit"                      {return eoProg;}
+[a-z]+  		            {yylval.id = yytext; return var;}
 [1-9][0-9]*\.[0-9]*         {yylval.num = atof(yytext) ; return number;}
-0?\.[1-9][0-9]*               {yylval.num = atof(yytext) ; return number;}
+0?\.[1-9][0-9]*             {yylval.num = atof(yytext) ; return number;}
 
 [1-9][0-9]*                 {yylval.num = atof(yytext); return number;}
+[0]                         {yylval.num = atof(yytext); return number;}
 
-[\n]			            {return eol;}
+[\n]			            {return eoLine;}
+[;]	    		            {return eoExp;}
 
 (==)                        {return eq;}
 (!=)                        {return n_eq;}
@@ -26,5 +28,3 @@ int yylex();
 %%
 
 int yywrap (void)  {return 1;}
-
-
