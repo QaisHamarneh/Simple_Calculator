@@ -14,13 +14,13 @@ void updateVariable(char *name, double val);
 
 %}
 
-%union {double num; char *id;}         /* Yacc definitions */
+%union {double num; char *id;}
 %start line
-%token stop_command
-%token eq n_eq ls_eq gr_eq eol
+%token eoProg eoExp eoLine
+%token eq n_eq ls_eq gr_eq 
 %token <num> number
-%token <id> identifier
-%type <num> line exp term power factor compare assignment parenth unary
+%token <id> var
+%type <num> line rel_op assign_op add_op mul_op pow_op unary parenth factor
 
 %left eq n_eq ls_eq gr_eq '<' '>'
 %right '='
@@ -28,48 +28,53 @@ void updateVariable(char *name, double val);
 %left '*' '/'
 %right '^'
 %nonassoc '-'
+
 %%
 
-/* descriptions of expected inputs     corresponding actions (in C) */
-
-line   		: compare eol			            {printf("=> %.10g\n-> ", $1);}
-	    	| line compare eol		            {printf("=> %.10g\n-> ", $2);}
-            | line stop_command eol            	{exit(EXIT_SUCCESS);}
-            | stop_command eol                 	{exit(EXIT_SUCCESS);}
+line   		: rel_op eoExp			            {printf("=> %.10g\n", $1);}
+	    	| line rel_op eoExp		            {printf("=> %.10g\n", $2);}
+            | rel_op eoLine			            {printf("=> %.10g\n-> ", $1);}
+	    	| line rel_op eoLine		        {printf("=> %.10g\n-> ", $2);}
+            | line eoLine                       {printf("-> ");}
+            | line eoProg eoLine                {exit(EXIT_SUCCESS);}
+            | eoProg eoLine                     {exit(EXIT_SUCCESS);}
+            | line eoProg eoExp eoLine          {exit(EXIT_SUCCESS);}
+            | eoProg eoExp eoLine               {exit(EXIT_SUCCESS);}
        		;
         
-compare 	: compare eq     assignment      	{$$ = ($1 == $3)? 1 : 0; }
-	    	| compare n_eq   assignment       	{$$ = ($1 != $3)? 1 : 0; }
-	    	| compare ls_eq  assignment      	{$$ = ($1 <= $3)? 1 : 0; }
-	    	| compare gr_eq  assignment      	{$$ = ($1 >= $3)? 1 : 0; }
-	    	| compare '<'    assignment      	{$$ = ($1 < $3)? 1 : 0; }
-            | compare '>'    assignment      	{$$ = ($1 > $3)? 1 : 0; }
-        	| assignment                      	{$$ = $1;}
+rel_op   	: rel_op eq     assign_op       	{$$ = ($1 == $3)? 1 : 0; }
+	    	| rel_op n_eq   assign_op       	{$$ = ($1 != $3)? 1 : 0; }
+	    	| rel_op ls_eq  assign_op       	{$$ = ($1 <= $3)? 1 : 0; }
+	    	| rel_op gr_eq  assign_op       	{$$ = ($1 >= $3)? 1 : 0; }
+	    	| rel_op '<'    assign_op       	{$$ = ($1 < $3)? 1 : 0; }
+            | rel_op '>'    assign_op      	    {$$ = ($1 > $3)? 1 : 0; }
+        	| assign_op                      	{$$ = $1;}
         	;
    
-assignment 	: identifier '=' assignment     	{$$ = $3; updateVariable($1,$3);}
-           	| exp                     	    	{$$ = $1;}
+assign_op 	: var '=' assign_op              	{$$ = $3; updateVariable($1,$3);}
+           	| add_op                     	  	{$$ = $1;}
 	    	;
 			
-exp 	   	: term                  	        {$$ = $1;}
-   	    	| exp '+' term         		        {$$ = $1 + $3;}
-       		| exp '-' term   %prec '+'         	{$$ = $1 - $3;}
+add_op 	   	: add_op '+' mul_op         	    {$$ = $1 + $3;}
+       		| add_op '-' mul_op   %prec '+'    	{$$ = $1 - $3;}
+            | mul_op                  	        {$$ = $1;}
+   	    	
        		;
-term   		: term '*' power                	{$$ = $1 * $3;}
-        	| term '/' power                	{$$ = $1 / $3;}
-        	| power                         	{$$ = $1;}
+mul_op   	: mul_op '*' pow_op                	{$$ = $1 * $3;}
+        	| mul_op '/' pow_op                	{$$ = $1 / $3;}
+        	| pow_op                         	{$$ = $1;}
        		;
-power  		: unary '^' power	  	            {$$ = pow($1 , $3);}
+pow_op 		: unary '^' pow_op	  	            {$$ = pow($1 , $3);}
        		| unary	                        	{$$ = $1;}
        		;
 unary	  	: '-' parenth		                {$$ = -1 * $2;}
 		    | parenth 	         	            {$$ = $1;}
 	        ;
-parenth  	: '(' compare ')'       	        {$$ = $2; }
+parenth  	: '(' rel_op ')'       	            {$$ = $2; }
 		    | factor          		            {$$ = $1;}
 	        ;
 factor  	: number                	        {$$ = $1;}
-		    | identifier		            	{$$ = getVariable($1);} 
+		    | var       		            	{$$ = getVariable($1);} 
 	        ;
 
 %%                     /* C code */
@@ -78,17 +83,14 @@ factor  	: number                	        {$$ = $1;}
 double getVariable(char *name)
 {
 	
-    char *varName = strtok(name, " =!+-()*/><^\n");
+    char *varName = strtok(name, " ;=!+-()*/><^\n");
 
-    node_t *variable = lookup(varName);
-	
-	return variable->value;
-	
+	return lookup(varName);
 }
 
 void updateVariable(char *name, double val)
 {
-    char *varName = strtok(name, " =!+-()*/><^\n");
+    char *varName = strtok(name, " ;=!+-()*/><^\n");
 
     insert(varName, val);
 }
