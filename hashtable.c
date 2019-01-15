@@ -47,16 +47,15 @@ void insert(char * key,double val){
     symTable->list[pos] = newNode;
 }
 
-node_t * lookup(char * key){
+double lookup(char * key){
     int pos = hashCode(key);
     node_t *list = symTable->list[pos];
     node_t *temp = list;
     while(temp){
         if(strcmp(temp->key, key) == 0){
-            return temp;
+            return temp->value;
         }
         temp = temp->next;
     }
-    printf("This variable was not defined!\n");
-    exit(-1);
+    return 0;
 }
