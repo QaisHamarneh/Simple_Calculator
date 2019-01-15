@@ -2,8 +2,8 @@
 Compiler for a simple calcul with variable definitions using lex and yacc
 
 # To Run the calculator:
-1- Compile all the files by typing the command: make
-2- Run the executable "my_calculator" by typing the command: ./my_calculator
+  - Compile all the files by typing the command: make
+  - Run the executable "my_calculator" by typing the command: ./my_calculator
 
 # Using the calculator: 
   - Relational expression using the operators: 
@@ -24,16 +24,16 @@ Compiler for a simple calcul with variable definitions using lex and yacc
   - Unary Negative operator     :   nonassociative
 
 # Example:
-  -> a = 5
-  => 5
-  -> b = 4.7; c = 0; d = 2
-  => 4.7
-  => 0
-  => 2
-  -> b ^ e + d ^ a    
-  => 33
-  -> x = d ^ -a;
-  => 0.03125
-  -> quit
+    -> a = 5
+    => 5
+    -> b = 4.7; c = 0; d = 2
+    => 4.7
+    => 0
+    => 2
+    -> b ^ e + d ^ a    
+    => 33
+    -> x = d ^ -a;
+    => 0.03125
+    -> quit
 
 
